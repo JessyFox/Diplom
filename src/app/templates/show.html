@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="my-5">
+
+        <h2 class="mb-3 text-center text-uppercase font-weight-bold">Ваш заказ</h2>
+
+    </div>
+
+    <div class="container-fluid mt-3 mb-3">
+        <div class="row p-3 border rounded mb-3">
+            <div class="col-md-12 align-items-center">
+                <div class="d-flex">
+                    <h4 class="text-uppercase">{{ order.product.name }}</h4>
+                    <p class="ms-auto rating">
+                        <span>₽</span> <span>{{ "%.2f" | format(order.product.price) }}</span>
+                    </p> 
+                </div>
+                <p>Количество: {{ order.quantity }}</p>
+                <p>Описание товара: {{ order.product.desc }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

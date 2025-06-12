@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="my-5">
+
+        <h2 class="mb-3 text-center text-uppercase font-weight-bold">Каталог товаров</h2>
+
+    </div>
+
+    <div class="container-fluid mt-3 mb-3">
+        {% for product in products %}
+            <div class="row p-3 border rounded mb-3">
+                <div class="col-md-12 align-items-center">
+                    <div class="d-flex">
+                        <h4 class="text-uppercase">{{ product.name }}</h4>
+                        <p class="ms-auto rating">
+                            <span>₽</span> <span>{{ "%.2f" | format(product.price) }}</span>
+                        </p> 
+                    </div>
+                    <p>{{ product.desc }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
