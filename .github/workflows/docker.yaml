@@ -41,6 +41,7 @@ jobs:
       packages: write
       issues: write
     steps:
+      - uses: actions/checkout@v3
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin      
       
@@ -78,23 +79,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           IMAGE_FULL: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
         run: |
-          # Удаление образа
-          DIGEST=$(
-            curl -sI \
-              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.oci.image.manifest.v1+json" \
-              "https://ghcr.io/v2/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/manifests/latest" \
-              | grep -i 'docker-content-digest' \
-              | awk '{print $2}' \
-              | tr -d '\r'
-          )
+          # Получаем digest для удаления
+          DIGEST=$(docker inspect $IMAGE_FULL --format '{{.RepoDigests}}' | grep -oP 'sha256:\w+')
           
-          echo "Deleting vulnerable image: $IMAGE_FULL"
-          curl -X DELETE -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          echo "Deleting vulnerable image: $IMAGE_FULL with digest $DIGEST"
+          curl -X DELETE \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             "https://ghcr.io/v2/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/manifests/$DIGEST"
 
-          # Создание issue через gh cli
+          # Настраиваем git для gh cli
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # Создание issue
           gh issue create \
-            --title "Уведомление безопасности: Уязвимости были найдены в Docker-образе" \
-            --body "### Критические уязвимости обнаружены\n\n**Image:** $IMAGE_FULL\n**Уязвимости:** ${{ steps.check-vulns.outputs.VULN_COUNT }}\n**Workflow:** [$GITHUB_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)\n\nDocker-образ был автоматически удален из хранилища. Проверьте результаты сканирования на вкладке GitHub Security." \
-            --label "security, bug"
+            --title "Уведомление безопасности: Уязвимости в ${{ env.IMAGE_NAME }}" \
+            --body "### ❌ Критические уязвимости обнаружены\n\n**Образ:** $IMAGE_FULL\n**Уязвимости:** ${{ steps.check-vulns.outputs.VULN_COUNT }}\n**Workflow:** [$GITHUB_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)\n\nОбраз был автоматически удален." \
+            --label "security,bug"
