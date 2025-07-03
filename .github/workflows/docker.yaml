@@ -85,5 +85,5 @@ jobs:
           # Создание issue
           gh issue create \
             --title "Уведомление безопасности: Уязвимости в ${{ env.IMAGE_NAME }}" \
-            --body "### Критические уязвимости обнаружены\n\n**Образ:** $IMAGE_NAME\n**Уязвимости:** ${{ steps.check-vulns.outputs.VULN_COUNT }}\n**Workflow:** [$GITHUB_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)\n\nОбраз был автоматически удален." \
+            --body "### Критические уязвимости обнаружены, *Уязвимости:** ${{ steps.check-vulns.outputs.VULN_COUNT }}" \
             --label "security,bug"
