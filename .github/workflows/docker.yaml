@@ -75,14 +75,18 @@ jobs:
       - name: Handle vulnerabilities
         if: steps.check-vulns.outputs.VULNERABILITIES_FOUND == 'true'
         env:
+          GH_TOKEN: ${{ github.token }}
           IMAGE_FULL: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
         run: |
           # Удаление образа
           DIGEST=$(
-            curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.oci.image.manifest.v1+json" \
-            "https://ghcr.io/v2/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/manifests/latest" \
-            | jq -r '.config.digest'
+            curl -sI \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+              "https://ghcr.io/v2/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/manifests/latest" \
+              | grep -i 'docker-content-digest' \
+              | awk '{print $2}' \
+              | tr -d '\r'
           )
           
           echo "Deleting vulnerable image: $IMAGE_FULL"
