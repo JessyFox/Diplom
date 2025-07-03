@@ -83,9 +83,7 @@ jobs:
           DIGEST=$(docker inspect $IMAGE_FULL --format '{{.RepoDigests}}' | grep -oP 'sha256:\w+')
           
           echo "Deleting vulnerable image: $IMAGE_FULL with digest $DIGEST"
-          curl -X DELETE \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            "https://ghcr.io/v2/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/manifests/$DIGEST"
+          gh api --method DELETE /user/packages/container/$IMAGE_NAME/versions/$DIGEST
 
           # Настраиваем git для gh cli
           git config --global user.name "GitHub Actions"
